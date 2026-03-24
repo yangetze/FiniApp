@@ -1,25 +1,10 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, Button, StyleSheet, Alert, ScrollView } from 'react-native';
 import { FinanceContext } from '../context/FinanceContext';
 import { Picker } from '@react-native-picker/picker';
-import { GoogleSheetsService } from '../services/GoogleSheetsService';
 
 const SettingsScreen = () => {
     const { accountingCurrency, setAccountingCurrency, clearData } = useContext(FinanceContext);
-    const [sheetUrl, setSheetUrl] = useState('');
-
-    useEffect(() => {
-        const loadUrl = async () => {
-            const url = await GoogleSheetsService.getApiUrl();
-            setSheetUrl(url || '');
-        };
-        loadUrl();
-    }, []);
-
-    const saveSheetUrl = async () => {
-        await GoogleSheetsService.setApiUrl(sheetUrl);
-        Alert.alert("Success", "Google Sheet URL saved!");
-    };
 
     const handleClearData = () => {
         Alert.alert(
@@ -56,17 +41,8 @@ const SettingsScreen = () => {
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.label}>Google Sheet Integration</Text>
-                <Text style={styles.description}>Paste your Apps Script Web App URL here to sync data.</Text>
-                <TextInput
-                    style={styles.input}
-                    value={sheetUrl}
-                    onChangeText={setSheetUrl}
-                    placeholder="https://script.google.com/..."
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                />
-                <Button title="Save URL" onPress={saveSheetUrl} />
+                <Text style={styles.label}>Database Integration</Text>
+                <Text style={styles.description}>Data sync is automatically managed by Supabase using the configured environment variables.</Text>
             </View>
 
             <View style={styles.spacer} />
