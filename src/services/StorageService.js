@@ -1,38 +1,32 @@
 import { LocalStorage } from './LocalStorage';
-import { GoogleSheetsService } from './GoogleSheetsService';
+import { SupabaseService } from './SupabaseService';
 
 export const StorageService = {
     addExpense: async (expense) => {
         // Always save locally for redundancy/offline speed
         await LocalStorage.addExpense(expense);
 
-        // If Google Sheet is configured, save there too
-        const sheetUrl = await GoogleSheetsService.getApiUrl();
-        if (sheetUrl) {
-            try {
-                await GoogleSheetsService.addExpense(expense);
-            } catch (e) {
-                console.warn("Failed to save to Google Sheet, but saved locally.", e);
-                // Optionally mark for sync later
-            }
+        // Save to Supabase
+        try {
+            await SupabaseService.addExpense(expense);
+        } catch (e) {
+            console.warn("Failed to save to Supabase, but saved locally.", e);
+            // Optionally mark for sync later
         }
         return expense;
     },
 
     getExpenses: async () => {
-        const sheetUrl = await GoogleSheetsService.getApiUrl();
-        if (sheetUrl) {
-            try {
-                const sheetExpenses = await GoogleSheetsService.getExpenses();
-                if (sheetExpenses && sheetExpenses.length > 0) {
-                    // Update local cache with sheet data?
-                    // For now, just return sheet data as source of truth
-                    return sheetExpenses;
-                }
-            } catch (e) {
-                console.warn("Failed to fetch from Google Sheet, falling back to local.", e);
+        try {
+            const dbExpenses = await SupabaseService.getExpenses();
+            if (dbExpenses && dbExpenses.length > 0) {
+                // Return database data as source of truth
+                return dbExpenses;
             }
+        } catch (e) {
+            console.warn("Failed to fetch from Supabase, falling back to local.", e);
         }
+
         return await LocalStorage.getExpenses();
     },
 
@@ -46,10 +40,6 @@ export const StorageService = {
 
     clearData: async () => {
         await LocalStorage.clearData();
-        // Clear sheet? Probably not safer to delete user data on sheet easily.
-    },
-
-    setSheetUrl: async (url) => {
-        await GoogleSheetsService.setApiUrl(url);
+        // Clear database? Probably not safer to delete user data on DB easily.
     }
 };
