@@ -1,0 +1,5 @@
+node_modules/
+*.log
+bundle_output.js
+bundle_output_2.js
+.expo/
